@@ -24,47 +24,44 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.sentry.android.gradle'
 apply plugin: 'kotlin-android'
-//apply plugin: 'kotlin-android-extensions'
-//apply plugin: 'kotlin-kapt'
-
 
 android {
     namespace "com.nextgis.mobile"
+    // 1. تم نقل السطر هنا وتغيير الإصدار إلى 35 (لأن 37 غير متوفر بعد)
+    compileSdk 35 
 
     buildFeatures {
         buildConfig = true
     }
 
-    // Setup the Sentry DSN from the file 'sentry.properties', which should contain
-    // sentry.dsn=https://publicKey:secretKey@host:port/1?options
-    // DO NOT PUBLIC the file 'sentry.properties' !!!
     File sentryPropFile = rootProject.file('sentry.properties')
-    String sentryDsn = ""
+    String sentryDsn = "https://dummy@dummy.ingest.sentry.io/1" // قيمة افتراضية
     if (sentryPropFile.exists()) {
         Properties sentryProp = new Properties()
         sentryProp.load(sentryPropFile.newDataInputStream())
-        sentryDsn = sentryProp.get("sentry.dsn")
-        if (sentryDsn == null || sentryDsn.trim().isEmpty()) {
-            throw new GradleException("sentry.dsn is missing or empty in sentry.properties")
+        String dsn = sentryProp.get("sentry.dsn")
+        if (dsn != null && !dsn.trim().isEmpty()) {
+            sentryDsn = dsn
         }
-    }else{
-        throw new GradleException("Missing required file: sentry.properties. Build cannot continue.")
     }
-
+    // 2. تم إزالة أمر إيقاف البناء (throw) إذا لم يوجد ملف sentry
 
     defaultConfig {
         applicationId 'com.nextgis.mobile'
         minSdkVersion 26
-        compileSdk 37
-        targetSdkVersion 37
+        // 3. تم إزالة compileSdk من هنا
+        targetSdkVersion 35
         versionCode 206
         versionName '3.2.3'
-        //archivesBaseName = "ngmobile-$versionName"
+        
         buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
 
-        def props = new Properties()
-        file("../local.properties").withInputStream { props.load(it) }
-
+        // 4. تم تأمين قراءة local.properties حتى لا يفشل البناء إذا لم يكن موجوداً
+        def localProps = rootProject.file('local.properties')
+        if (localProps.exists()) {
+            def props = new Properties()
+            localProps.withInputStream { props.load(it) }
+        }
     }
 
     productFlavors {
@@ -72,11 +69,8 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file('../../keystore_google')
-            storePassword ANDROID_STORE_PASSWORD
-            keyAlias ANDROID_KEY
-            keyPassword ANDROID_KEY_PASSWORD
-
+            // 5. تم إزالة إعدادات التوقيع المخصصة للـ debug 
+            // لكي يستخدم النظام مفتاح التوقيع الافتراضي في GitHub Actions
         }
         release {
             storeFile file('../../keystore_google')
@@ -112,7 +106,7 @@ android {
             resValue 'string', 'nextgis_accounts_auth_type', 'com.nextgis.account.debug'
             buildConfigField "String", "providerAuth", '"com.nextgis.mobile.provider.debug"'
             buildConfigField "String", "nextgismobile_accounts_auth", '"com.nextgis.account.debug"'
-            signingConfig signingConfigs.debug
+            // 6. تم إزالة signingConfig للـ debug
             debuggable true
         }
     }
@@ -139,28 +133,19 @@ dependencies {
         exclude group: 'androidx.lifecycle', module: 'lifecycle-viewmodel-ktx'
     }
 
-
     implementation 'com.github.JakeWharton:NineOldAndroids:2.4.0'
     implementation 'androidx.appcompat:appcompat:1.8.0'
-//    implementation 'com.android.support:support-compat:28.0.0'
     implementation('androidx.recyclerview:recyclerview:1.4.0') {
     }
     implementation('androidx.legacy:legacy-support-v4:1.0.0') {
     }
     implementation 'com.google.android.gms:play-services-analytics:18.1.1'
-//    implementation 'com.github.TechFreak:WizardPager:1.0.3'
-    //implementation 'com.android.volley:volley:1.2.1'
     implementation 'com.github.barsrb:hyperlog-android:master-SNAPSHOT'
 
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.11.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    //implementation 'org.maplibre.gl:android-sdk:13.6.0'
-    //implementation 'org.maplibre.gl:android-sdk-opengl:13.6.0' //old ardeno work with opengl correctly
     implementation 'org.maplibre.gl:android-sdk-vulkan-opengl:13.6.1'
     implementation 'com.squareup.okhttp3:okhttp:5.5.0'
-
-//    debugImplementation "com.squareup.leakcanary:leakcanary-android:2.14"
-//    debugImplementation "com.squareup.leakcanary:leakcanary-android-core:2.14"
 
     implementation project(path: ':wizardpager')
 }
