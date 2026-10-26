@@ -15,14 +15,19 @@ jobs:
       with:
         submodules: 'recursive'
 
-    # 1. تثبيت Android SDK Platform 37 و Build-Tools المطلوبة
+    # 1. إعداد Android SDK الأساسي (v4 لا يحاول تثبيت tools المحذوفة)
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      uses: android-actions/setup-android@v4
       with:
-        api-level: 37
-        build-tools: 37.0.0
+        packages: 'platform-tools' # تحديد الحزم صراحةً لتجنب tools
 
-    # 2. إنشاء ملف local.properties
+    # 2. تثبيت المنصة والأدوات المطلوبة يدوياً عبر sdkmanager
+    - name: Install Android SDK Platform 37
+      run: |
+        sdkmanager "platforms;android-37" "build-tools;37.0.0"
+        sdkmanager --licenses
+
+    # 3. إنشاء ملف local.properties
     - name: Create dummy local.properties
       run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
