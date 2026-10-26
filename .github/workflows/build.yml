@@ -15,17 +15,17 @@ jobs:
       with:
         submodules: 'recursive'
 
-    # 1. إعداد Android SDK الأساسي (v4 لا يحاول تثبيت tools المحذوفة)
+    # 1. إعداد Android SDK الأساسي
     - name: Setup Android SDK
       uses: android-actions/setup-android@v4
       with:
-        packages: 'platform-tools' # تحديد الحزم صراحةً لتجنب tools
+        packages: 'platform-tools'
 
-    # 2. تثبيت المنصة والأدوات المطلوبة يدوياً عبر sdkmanager
+    # 2. تثبيت المنصة والأدوات المطلوبة يدوياً مع الموافقة التلقائية على التراخيص
     - name: Install Android SDK Platform 37
       run: |
-        sdkmanager "platforms;android-37" "build-tools;37.0.0"
-        sdkmanager --licenses
+        yes | sdkmanager "platforms;android-37" "build-tools;37.0.0"
+        yes | sdkmanager --licenses
 
     # 3. إنشاء ملف local.properties
     - name: Create dummy local.properties
