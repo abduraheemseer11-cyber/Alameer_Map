@@ -1,18 +1,43 @@
 /*
  * Project:  NextGIS Mobile
- * ...
+ * Purpose:  Mobile GIS for Android.
+ * Author:   Dmitry Baryshnikov (aka Bishop), bishop.dev@gmail.com
+ * Author:   NikitaFeodonit, nfeodonit@yandex.com
+ * Author:   Stanislav Petriakov, becomeglory@gmail.com
+ * *****************************************************************************
+ * Copyright (c) 2014-2019 NextGIS, info@nextgis.com
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
+    // تحديث إصدار Kotlin
     ext.kotlin_version = '2.4.0' 
 
     repositories {
-        maven { url 'https://maven.google.com/'; name 'Google' }
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
     }
     dependencies {
+        // تحديث AGP إلى 9.1.1 (أول إصدار يدعم API 37)
         classpath 'com.android.tools.build:gradle:9.1.1'
         classpath 'com.google.gms:google-services:4.5.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -27,24 +52,38 @@ allprojects {
     }
 }
 
-// ✅ الحل الجذري: معالجة جميع الوحدات الفرعية تلقائياً
+// ✅ الحل النهائي والشامل لمعالجة جميع الوحدات الفرعية (Submodules)
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
-            // 1. إجبار استخدام compileSdk 37
+            // 1. إجبار جميع الوحدات على استخدام compileSdk 37
             project.android {
-                compileSdkVersion 37
-                buildToolsVersion "37.0.0"
+                if (project.android.hasProperty('compileSdkVersion')) {
+                    compileSdkVersion 37
+                } else {
+                    compileSdk 37
+                }
             }
 
-            // 2. إزالة package من AndroidManifest.xml تلقائياً
+            // 2. معالجة ملف AndroidManifest.xml لاستخراج الـ namespace تلقائياً
             def manifestFile = file("${project.projectDir}/src/main/AndroidManifest.xml")
             if (manifestFile.exists()) {
                 def manifestContent = manifestFile.getText('UTF-8')
-                if (manifestContent.contains('package=')) {
-                    println "Removing package attribute from ${manifestFile}"
+                // البحث عن سطر package="..."
+                def matcher = manifestContent =~ /package="([^"]+)"/
+                if (matcher.find()) {
+                    def pkgName = matcher.group(1)
+                    
+                    // وضع الاسم كـ namespace في إعدادات Gradle للوحدة
+                    if (project.android.hasProperty('namespace')) {
+                        project.android.namespace = pkgName
+                    }
+                    
+                    // حذف السطر من المانيفست حتى لا يشتكي النظام
                     manifestContent = manifestContent.replaceAll(/package="[^"]*"/, '')
                     manifestFile.write(manifestContent, 'UTF-8')
+                    
+                    println "✅ Automatically fixed namespace for ${project.name}: ${pkgName}"
                 }
             }
         }
