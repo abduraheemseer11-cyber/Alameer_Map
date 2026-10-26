@@ -27,7 +27,6 @@ apply plugin: 'kotlin-android'
 
 android {
     namespace "com.nextgis.mobile"
-    // 1. تم نقل السطر هنا وتغيير الإصدار إلى 35 (لأن 37 غير متوفر بعد)
     compileSdk 35 
 
     buildFeatures {
@@ -35,7 +34,7 @@ android {
     }
 
     File sentryPropFile = rootProject.file('sentry.properties')
-    String sentryDsn = "https://dummy@dummy.ingest.sentry.io/1" // قيمة افتراضية
+    String sentryDsn = "https://dummy@dummy.ingest.sentry.io/1" 
     if (sentryPropFile.exists()) {
         Properties sentryProp = new Properties()
         sentryProp.load(sentryPropFile.newDataInputStream())
@@ -44,19 +43,16 @@ android {
             sentryDsn = dsn
         }
     }
-    // 2. تم إزالة أمر إيقاف البناء (throw) إذا لم يوجد ملف sentry
 
     defaultConfig {
         applicationId 'com.nextgis.mobile'
         minSdkVersion 26
-        // 3. تم إزالة compileSdk من هنا
         targetSdkVersion 35
         versionCode 206
         versionName '3.2.3'
         
         buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
 
-        // 4. تم تأمين قراءة local.properties حتى لا يفشل البناء إذا لم يكن موجوداً
         def localProps = rootProject.file('local.properties')
         if (localProps.exists()) {
             def props = new Properties()
@@ -69,14 +65,13 @@ android {
 
     signingConfigs {
         debug {
-            // 5. تم إزالة إعدادات التوقيع المخصصة للـ debug 
-            // لكي يستخدم النظام مفتاح التوقيع الافتراضي في GitHub Actions
         }
         release {
+            // تم استخدام قيم افتراضية (Dummy) حتى لا يتعطل البناء إذا لم تكن المتغيرات موجودة
             storeFile file('../../keystore_google')
-            storePassword ANDROID_STORE_PASSWORD
-            keyAlias ANDROID_KEY
-            keyPassword ANDROID_KEY_PASSWORD
+            storePassword project.findProperty("ANDROID_STORE_PASSWORD") ?: "dummy_password"
+            keyAlias project.findProperty("ANDROID_KEY") ?: "dummy_alias"
+            keyPassword project.findProperty("ANDROID_KEY_PASSWORD") ?: "dummy_password"
         }
     }
 
@@ -106,7 +101,6 @@ android {
             resValue 'string', 'nextgis_accounts_auth_type', 'com.nextgis.account.debug'
             buildConfigField "String", "providerAuth", '"com.nextgis.mobile.provider.debug"'
             buildConfigField "String", "nextgismobile_accounts_auth", '"com.nextgis.account.debug"'
-            // 6. تم إزالة signingConfig للـ debug
             debuggable true
         }
     }
