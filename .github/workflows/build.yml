@@ -15,17 +15,18 @@ jobs:
       with:
         submodules: 'recursive'
 
-    # 1. إعداد Android SDK الأساسي
+    # 1. إعداد Android SDK الأساسي (بدون تثبيت حزم إضافية)
     - name: Setup Android SDK
       uses: android-actions/setup-android@v4
       with:
-        packages: 'platform-tools'
+        packages: ''
 
-    # 2. تثبيت المنصة والأدوات المطلوبة يدوياً مع الموافقة التلقائية على التراخيص
-    - name: Install Android SDK Platform 37
+    # 2. تثبيت الحزمة بالاسم الصحيح (android-37.0) وإنشاء رابط رمزي
+    - name: Install Android SDK Platform 37 and create symlink
       run: |
-        yes | sdkmanager "platforms;android-37" "build-tools;37.0.0"
+        yes | sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
         yes | sdkmanager --licenses
+        ln -s $ANDROID_SDK_ROOT/platforms/android-37.0 $ANDROID_SDK_ROOT/platforms/android-37
 
     # 3. إنشاء ملف local.properties
     - name: Create dummy local.properties
