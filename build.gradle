@@ -24,8 +24,8 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    // تم تصحيح الإصدار إلى إصدار حقيقي
-    ext.kotlin_version = '2.0.0' 
+    // 1. تحديث إصدار Kotlin
+    ext.kotlin_version = '2.4.0' 
 
     repositories {
         maven {
@@ -37,12 +37,12 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        // تم تصحيح إصدار Android Gradle Plugin إلى 8.6.0
-        classpath 'com.android.tools.build:gradle:8.6.0'
+        // 2. تحديث AGP إلى 9.1.1 (أول إصدار يدعم API 37)
+        classpath 'com.android.tools.build:gradle:9.1.1'
         classpath 'com.google.gms:google-services:4.5.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        // تم تحديث إضافة Sentry لتتوافق مع الإصدار الجديد من AGP
-        classpath 'io.sentry:sentry-android-gradle-plugin:4.14.1'
+        // قد تحتاج إلى إزالة أو تحديث إضافة Sentry أدناه
+        // classpath 'io.sentry:sentry-android-gradle-plugin:4.14.1'
     }
 }
 
@@ -54,13 +54,12 @@ allprojects {
     }
 }
 
-// ✅ هذا الجزء الجديد: إجبار جميع الوحدات الفرعية على استخدام compileSdk 35
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
             android {
-                compileSdkVersion 35
-                buildToolsVersion "35.0.0"
+                compileSdkVersion 37
+                buildToolsVersion "37.0.0"
             }
         }
     }
