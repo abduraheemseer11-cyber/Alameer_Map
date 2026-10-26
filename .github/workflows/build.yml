@@ -15,9 +15,16 @@ jobs:
       with:
         submodules: 'recursive'
 
-    # خطوة جديدة: إنشاء ملف local.properties لحل مشكلة maplibui
+    # 1. تثبيت Android SDK Platform 37 و Build-Tools المطلوبة
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 37
+        build-tools: 37.0.0
+
+    # 2. إنشاء ملف local.properties
     - name: Create dummy local.properties
-      run: echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
+      run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
     - name: Set up JDK 21
       uses: actions/setup-java@v4
