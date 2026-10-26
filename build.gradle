@@ -43,9 +43,6 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // تم تحديث إضافة Sentry لتتوافق مع الإصدار الجديد من AGP
         classpath 'io.sentry:sentry-android-gradle-plugin:4.14.1'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
@@ -54,5 +51,17 @@ allprojects {
         mavenCentral()
         maven { url "https://www.jitpack.io" }
         google()
+    }
+}
+
+// ✅ هذا الجزء الجديد: إجبار جميع الوحدات الفرعية على استخدام compileSdk 35
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            android {
+                compileSdkVersion 35
+                buildToolsVersion "35.0.0"
+            }
+        }
     }
 }
