@@ -15,30 +15,38 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-/**
- * شاشة تسجيل الدخول - تعمل مع أي ثيم (تستخدم Activity العادي).
- */
 class LoginActivity : Activity() {
 
     private var emailInput: EditText? = null
     private var passwordInput: EditText? = null
     private var loginButton: Button? = null
     private var registerButton: Button? = null
+    private var googleButton: Button? = null
     private var progressBar: ProgressBar? = null
     private var errorText: TextView? = null
 
-    private val auth by lazy { com.google.firebase.auth.FirebaseAuth.getInstance() }
+    private val auth by lazy { FirebaseAuth.getInstance() }
+    private val credentialManager by lazy { CredentialManager.create(this) }
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // إذا كان المستخدم مسجلاً مسبقاً، انتقل مباشرة إلى الشاشة الرئيسية
         if (auth.currentUser != null) {
             goToMain()
             return
         }
-
         buildUi()
     }
 
@@ -50,7 +58,6 @@ class LoginActivity : Activity() {
             setBackgroundColor(Color.parseColor("#F5F5F5"))
         }
 
-        // شعار / عنوان
         val title = TextView(this).apply {
             text = "خريطة شبكة الأمير"
             textSize = 26f
@@ -69,7 +76,6 @@ class LoginActivity : Activity() {
         }
         layout.addView(subtitle)
 
-        // حقل البريد
         emailInput = EditText(this).apply {
             hint = "البريد الإلكتروني"
             inputType = InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
@@ -81,7 +87,6 @@ class LoginActivity : Activity() {
         }
         layout.addView(emailInput)
 
-        // حقل كلمة المرور
         passwordInput = EditText(this).apply {
             hint = "كلمة المرور"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -93,7 +98,6 @@ class LoginActivity : Activity() {
         }
         layout.addView(passwordInput)
 
-        // نص الأخطاء
         errorText = TextView(this).apply {
             setTextColor(Color.RED)
             gravity = Gravity.CENTER
@@ -105,7 +109,6 @@ class LoginActivity : Activity() {
         }
         layout.addView(errorText)
 
-        // شريط التحميل
         progressBar = ProgressBar(this).apply {
             visibility = View.GONE
             layoutParams = LinearLayout.LayoutParams(
@@ -118,7 +121,6 @@ class LoginActivity : Activity() {
         }
         layout.addView(progressBar)
 
-        // زر تسجيل الدخول
         loginButton = Button(this).apply {
             text = "تسجيل الدخول"
             layoutParams = LinearLayout.LayoutParams(
@@ -129,7 +131,6 @@ class LoginActivity : Activity() {
         }
         layout.addView(loginButton)
 
-        // زر إنشاء حساب
         registerButton = Button(this).apply {
             text = "إنشاء حساب جديد"
             layoutParams = LinearLayout.LayoutParams(
@@ -140,66 +141,95 @@ class LoginActivity : Activity() {
         }
         layout.addView(registerButton)
 
-        val scrollView = ScrollView(this).apply {
-            addView(layout)
+        // زر Google
+        googleButton = Button(this).apply {
+            text = "تسجيل الدخول باستخدام Google"
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, 10, 0, 10) }
+            setOnClickListener { signInWithGoogle() }
         }
+        layout.addView(googleButton)
 
+        val scrollView = ScrollView(this).apply { addView(layout) }
         setContentView(scrollView)
     }
 
     private fun loginUser() {
         val email = emailInput?.text?.toString()?.trim() ?: ""
         val password = passwordInput?.text?.toString()?.trim() ?: ""
-
         if (!validateInputs(email, password)) return
-
-        showLoading(true)
-        errorText?.visibility = View.GONE
-
+        showLoading(true); errorText?.visibility = View.GONE
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 showLoading(false)
-                if (task.isSuccessful) {
-                    goToMain()
-                } else {
-                    showError(task.exception?.localizedMessage ?: "فشل تسجيل الدخول")
-                }
+                if (task.isSuccessful) goToMain()
+                else showError(task.exception?.localizedMessage ?: "فشل تسجيل الدخول")
             }
     }
 
     private fun registerUser() {
         val email = emailInput?.text?.toString()?.trim() ?: ""
         val password = passwordInput?.text?.toString()?.trim() ?: ""
-
         if (!validateInputs(email, password)) return
-
-        showLoading(true)
-        errorText?.visibility = View.GONE
-
+        showLoading(true); errorText?.visibility = View.GONE
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 showLoading(false)
-                if (task.isSuccessful) {
-                    goToMain()
-                } else {
-                    showError(task.exception?.localizedMessage ?: "فشل إنشاء الحساب")
-                }
+                if (task.isSuccessful) goToMain()
+                else showError(task.exception?.localizedMessage ?: "فشل إنشاء الحساب")
             }
     }
 
+    private fun signInWithGoogle() {
+        showLoading(true); errorText?.visibility = View.GONE
+        coroutineScope.launch {
+            try {
+                // ملاحظة: R.string.default_web_client_id يتم إنشاؤه تلقائياً بواسطة إضافة google-services
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(getString(com.nextgis.mobile.R.string.default_web_client_id))
+                    .build()
+
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val result = credentialManager.getCredential(this@LoginActivity, request)
+                handleSignInResult(result.credential)
+            } catch (e: GetCredentialException) {
+                showLoading(false)
+                showError("Google Sign-In error: ${e.message}")
+            }
+        }
+    }
+
+    private fun handleSignInResult(credential: androidx.credentials.Credential) {
+        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            try {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
+                auth.signInWithCredential(firebaseCredential)
+                    .addOnCompleteListener(this) { task ->
+                        showLoading(false)
+                        if (task.isSuccessful) goToMain()
+                        else showError(task.exception?.localizedMessage ?: "فشل تسجيل الدخول عبر Google")
+                    }
+            } catch (e: Exception) {
+                showLoading(false)
+                showError("Google token error: ${e.message}")
+            }
+        } else {
+            showLoading(false)
+            showError("نوع بيانات الاعتماد غير مدعوم")
+        }
+    }
+
     private fun validateInputs(email: String, password: String): Boolean {
-        if (TextUtils.isEmpty(email)) {
-            showError("الرجاء إدخال البريد الإلكتروني")
-            return false
-        }
-        if (TextUtils.isEmpty(password)) {
-            showError("الرجاء إدخال كلمة المرور")
-            return false
-        }
-        if (password.length < 6) {
-            showError("كلمة المرور يجب أن تكون 6 أحرف على الأقل")
-            return false
-        }
+        if (TextUtils.isEmpty(email)) { showError("الرجاء إدخال البريد الإلكتروني"); return false }
+        if (TextUtils.isEmpty(password)) { showError("الرجاء إدخال كلمة المرور"); return false }
+        if (password.length < 6) { showError("كلمة المرور يجب أن تكون 6 أحرف على الأقل"); return false }
         return true
     }
 
@@ -207,6 +237,7 @@ class LoginActivity : Activity() {
         progressBar?.visibility = if (loading) View.VISIBLE else View.GONE
         loginButton?.isEnabled = !loading
         registerButton?.isEnabled = !loading
+        googleButton?.isEnabled = !loading
     }
 
     private fun showError(message: String) {
