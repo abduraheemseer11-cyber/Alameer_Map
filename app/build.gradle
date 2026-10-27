@@ -154,6 +154,9 @@ dependencies {
     // Firebase Authentication (للتسجيل بالبريد وكلمة المرور)
     implementation 'com.google.firebase:firebase-auth'
 
+    // ✏️ جديد: Firebase Firestore (قاعدة بيانات السحابة)
+    implementation 'com.google.firebase:firebase-firestore'
+
     // Google Play Services Auth (لتسجيل الدخول عبر Google)
     implementation 'com.google.android.gms:play-services-auth:21.2.0'
 
