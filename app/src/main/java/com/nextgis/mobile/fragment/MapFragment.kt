@@ -428,35 +428,41 @@ override fun onMapReady(mapboxMap: MapLibreMap) {
 
     // ⬇️⬇️⬇️ إضافة: طبقة القمر الصناعي فوق كل شيء ⬇️⬇️⬇️
     try {
-        // إعداد TileSet لخريطة ESRI World Imagery (مجانية وعالية الجودة)
         val satelliteTiles = org.maplibre.android.style.sources.TileSet(
             "tiles",
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         )
         satelliteTiles.attribution = "Esri, Maxar, Earthstar Geographics"
 
-        // إنشاء مصدر الراستر (الصور)
         val satelliteSource = org.maplibre.android.style.sources.RasterSource(
             "alameer_satellite_source",
             satelliteTiles,
             256
         )
 
-        // إنشاء الطبقة التي ستُعرض
         val satelliteLayer = org.maplibre.android.style.layers.RasterLayer(
             "alameer_satellite_layer",
             "alameer_satellite_source"
         )
 
-        // إضافة المصدر والطبقة إلى الخريطة
-        mapboxMaplibre.addSource(satelliteSource)
-        mapboxMaplibre.addLayer(satelliteLayer)
-
-        android.util.Log.d("AlameerSatellite", "Satellite layer added successfully")
+        // ✏️ الإصلاح: use .style to add source and layer
+        val mapStyle = mapboxMaplibre.style
+        if (mapStyle != null) {
+            mapStyle.addSource(satelliteSource)
+            mapStyle.addLayer(satelliteLayer)
+            android.util.Log.d("AlameerSatellite", "Satellite layer added successfully")
+        } else {
+            android.util.Log.e("AlameerSatellite", "Style is null, cannot add satellite layer")
+        }
     } catch (e: Exception) {
         android.util.Log.e("AlameerSatellite", "Failed to add satellite layer: ${e.message}", e)
     }
     // ⬆️⬆️⬆️ نهاية الإضافة ⬆️⬆️⬆️
+}
+
+override fun loadLayersLite(){
+    val allLayers = mMapRef.get()!!.getAllLayers()
+    mMapRef.get()!!.map!!.loadLayersToMaplibreMapLite(allLayers, false)
 }
 
     override fun getLongLongClickProcesses(): Boolean {
