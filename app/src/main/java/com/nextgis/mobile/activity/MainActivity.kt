@@ -181,6 +181,16 @@ class MainActivity : NGActivity(), GpsEventListener, IChooseLayerResult,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // ⬇️⬇️⬇️ جديد: فحص تسجيل الدخول عبر Firebase ⬇️⬇️⬇️
+        val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        if (firebaseUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+        // ⬆️⬆️⬆️ نهاية الإضافة ⬆️⬆️⬆️
+
         // initialize the default settings
         PreferenceManager.setDefaultValues(this, R.xml.preferences_general, false)
         PreferenceManager.setDefaultValues(this, R.xml.preferences_map, false)
