@@ -393,44 +393,71 @@ public class MapFragment
         mapViewMaplibre.getMapAsync(this)
     }
 
-    override fun onMapReady(mapboxMap: MapLibreMap) {
-        mMapRef.get()!!.map!!.setMapContext(this)
+override fun onMapReady(mapboxMap: MapLibreMap) {
+    mMapRef.get()!!.map!!.setMapContext(this)
 
-        val  interceptor = (mApp as IGISApplication).getAuthInterceptor();
+    val  interceptor = (mApp as IGISApplication).getAuthInterceptor();
 
-        val client = OkHttpClient.Builder()
-            .addInterceptor(interceptor)
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .dispatcher(getDispatcher())
-            .build()
+    val client = OkHttpClient.Builder()
+        .addInterceptor(interceptor)
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .dispatcher(getDispatcher())
+        .build()
 
-        // set global http client for raster auth
-        HttpRequestImpl.setOkHttpClient(client)
+    // set global http client for raster auth
+    HttpRequestImpl.setOkHttpClient(client)
 
-        val mapboxMaplibre = mapboxMap
+    val mapboxMaplibre = mapboxMap
 
-        mMapRef.get()!!.map!!.setMaplibreMap(mapboxMaplibre)
+    mMapRef.get()!!.map!!.setMaplibreMap(mapboxMaplibre)
 
-        mapboxMaplibre.uiSettings.isRotateGesturesEnabled = false
-        mapboxMaplibre.uiSettings.isCompassEnabled = false
-        mapboxMaplibre.uiSettings.isLogoEnabled = false
-        mapboxMaplibre.addOnCameraIdleListener(this)
+    mapboxMaplibre.uiSettings.isRotateGesturesEnabled = false
+    mapboxMaplibre.uiSettings.isCompassEnabled = false
+    mapboxMaplibre.uiSettings.isLogoEnabled = false
+    mapboxMaplibre.addOnCameraIdleListener(this)
 
-        val styleJson = loadJsonFromAssets(requireContext(), "ngwstyle.json")
-        val vectorLayers = mMapRef.get()!!.getVectorLayersByType(GeoConstants.GTAnyCheck)
-        val layersTrack =  mMapRef.get()!!.getLayersByType(Constants.LAYERTYPE_TRACKS)
-        vectorLayers.addAll(layersTrack);
+    val styleJson = loadJsonFromAssets(requireContext(), "ngwstyle.json")
+    val vectorLayers = mMapRef.get()!!.getVectorLayersByType(GeoConstants.GTAnyCheck)
+    val layersTrack =  mMapRef.get()!!.getLayersByType(Constants.LAYERTYPE_TRACKS)
+    vectorLayers.addAll(layersTrack);
 
-        val allLayers = mMapRef.get()!!.getAllLayers()
+    val allLayers = mMapRef.get()!!.getAllLayers()
 
-        mMapRef.get()!!.map!!.loadLayersToMaplibreMap(styleJson, allLayers, true, true)
+    mMapRef.get()!!.map!!.loadLayersToMaplibreMap(styleJson, allLayers, true, true)
+
+    // ⬇️⬇️⬇️ إضافة: طبقة القمر الصناعي فوق كل شيء ⬇️⬇️⬇️
+    try {
+        // إعداد TileSet لخريطة ESRI World Imagery (مجانية وعالية الجودة)
+        val satelliteTiles = org.maplibre.android.style.sources.TileSet(
+            "tiles",
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        )
+        satelliteTiles.attribution = "Esri, Maxar, Earthstar Geographics"
+
+        // إنشاء مصدر الراستر (الصور)
+        val satelliteSource = org.maplibre.android.style.sources.RasterSource(
+            "alameer_satellite_source",
+            satelliteTiles,
+            256
+        )
+
+        // إنشاء الطبقة التي ستُعرض
+        val satelliteLayer = org.maplibre.android.style.layers.RasterLayer(
+            "alameer_satellite_layer",
+            "alameer_satellite_source"
+        )
+
+        // إضافة المصدر والطبقة إلى الخريطة
+        mapboxMaplibre.addSource(satelliteSource)
+        mapboxMaplibre.addLayer(satelliteLayer)
+
+        android.util.Log.d("AlameerSatellite", "Satellite layer added successfully")
+    } catch (e: Exception) {
+        android.util.Log.e("AlameerSatellite", "Failed to add satellite layer: ${e.message}", e)
     }
-
-    override fun loadLayersLite(){
-        val allLayers = mMapRef.get()!!.getAllLayers()
-        mMapRef.get()!!.map!!.loadLayersToMaplibreMapLite(allLayers, false)
-    }
+    // ⬆️⬆️⬆️ نهاية الإضافة ⬆️⬆️⬆️
+}
 
     override fun getLongLongClickProcesses(): Boolean {
         return longClickProcessed
