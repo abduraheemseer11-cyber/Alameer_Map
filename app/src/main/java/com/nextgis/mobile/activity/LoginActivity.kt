@@ -1,208 +1,75 @@
 package com.nextgis.mobile.activity
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.text.InputType
-import android.text.TextUtils
 import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.ScrollView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
 
 /**
- * شاشة تسجيل الدخول - مبنية برمجياً (بدون XML)
+ * نسخة تشخيصية من شاشة تسجيل الدخول.
+ * تستخدم Activity العادي (بدون AppCompat) لتجنب مشاكل الثيم.
  */
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : Activity() {
 
-    private lateinit var auth: FirebaseAuth
-    private lateinit var emailInput: EditText
-    private lateinit var passwordInput: EditText
-    private lateinit var loginButton: Button
-    private lateinit var registerButton: Button
-    private lateinit var progressBar: ProgressBar
-    private lateinit var errorText: TextView
+    private lateinit var statusText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        log("=== onCreate started ===")
 
-        auth = FirebaseAuth.getInstance()
-
-        // إذا كان المستخدم مسجلاً مسبقاً، انتقل مباشرة إلى الشاشة الرئيسية
-        if (auth.currentUser != null) {
-            goToMain()
-            return
-        }
-
-        buildUiProgrammatically()
-    }
-
-    /**
-     * بناء واجهة تسجيل الدخول برمجياً
-     */
-    private fun buildUiProgrammatically() {
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(64, 200, 64, 64)
-            setBackgroundColor(Color.parseColor("#F5F5F5"))
-        }
-
-        // العنوان
-        val title = TextView(this).apply {
-            text = "خريطة شبكة الأمير"
-            textSize = 24f
-            setTextColor(Color.parseColor("#1976D2"))
-            gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 40)
-        }
-        layout.addView(title)
-
-        // حقل البريد الإلكتروني
-        emailInput = EditText(this).apply {
-            hint = "البريد الإلكتروني"
-            inputType = InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(0, 0, 0, 20) }
-        }
-        layout.addView(emailInput)
-
-        // حقل كلمة المرور
-        passwordInput = EditText(this).apply {
-            hint = "كلمة المرور"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(0, 0, 0, 20) }
-        }
-        layout.addView(passwordInput)
-
-        // نص الأخطاء
-        errorText = TextView(this).apply {
-            setTextColor(Color.RED)
-            gravity = Gravity.CENTER
-            visibility = View.GONE
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(0, 0, 0, 20) }
-        }
-        layout.addView(errorText)
-
-        // شريط التحميل
-        progressBar = ProgressBar(this).apply {
-            visibility = View.GONE
-        }
-        layout.addView(progressBar)
-
-        // زر تسجيل الدخول
-        loginButton = Button(this).apply {
-            text = "تسجيل الدخول"
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(0, 20, 0, 10) }
-            setOnClickListener { loginUser() }
-        }
-        layout.addView(loginButton)
-
-        // زر إنشاء حساب
-        registerButton = Button(this).apply {
-            text = "إنشاء حساب جديد"
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setOnClickListener { registerUser() }
-        }
-        layout.addView(registerButton)
-
-        val scrollView = ScrollView(this).apply {
-            addView(layout)
-        }
-
-        setContentView(scrollView)
-    }
-
-    private fun loginUser() {
-        val email = emailInput.text.toString().trim()
-        val password = passwordInput.text.toString().trim()
-
-        if (!validateInputs(email, password)) return
-
-        showLoading(true)
-        errorText.visibility = View.GONE
-
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                showLoading(false)
-                if (task.isSuccessful) {
-                    goToMain()
-                } else {
-                    showError(task.exception?.localizedMessage ?: "فشل تسجيل الدخول")
-                }
+        try {
+            val layout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setBackgroundColor(Color.WHITE)
+                setPadding(50, 50, 50, 50)
             }
-    }
 
-    private fun registerUser() {
-        val email = emailInput.text.toString().trim()
-        val password = passwordInput.text.toString().trim()
-
-        if (!validateInputs(email, password)) return
-
-        showLoading(true)
-        errorText.visibility = View.GONE
-
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                showLoading(false)
-                if (task.isSuccessful) {
-                    goToMain()
-                } else {
-                    showError(task.exception?.localizedMessage ?: "فشل إنشاء الحساب")
-                }
+            statusText = TextView(this).apply {
+                text = "LOGIN SCREEN\n\nStep 1: Activity created ✓\n\nWaiting for Firebase (2s)..."
+                textSize = 16f
+                setTextColor(Color.BLACK)
+                gravity = Gravity.CENTER
             }
-    }
+            layout.addView(statusText)
 
-    private fun validateInputs(email: String, password: String): Boolean {
-        if (TextUtils.isEmpty(email)) {
-            showError("الرجاء إدخال البريد الإلكتروني")
-            return false
+            setContentView(layout)
+            log("setContentView called successfully")
+
+            // انتظر ثانيتين ثم اختبر Firebase (لنرى إن كانت الشاشة ظهرت)
+            statusText.postDelayed({ testFirebase() }, 2000)
+
+        } catch (e: Exception) {
+            log("Exception in onCreate: ${e.message}\n${e.stackTraceToString()}")
         }
-        if (TextUtils.isEmpty(password)) {
-            showError("الرجاء إدخال كلمة المرور")
-            return false
+    }
+
+    private fun testFirebase() {
+        log("testFirebase started")
+        try {
+            val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+            log("FirebaseAuth.getInstance() OK")
+
+            val user = auth.currentUser
+            log("currentUser.uid = ${user?.uid}")
+
+            statusText.text = "LOGIN SCREEN\n\nStep 1: Activity ✓\nStep 2: Firebase ✓\n\nUser: ${user?.uid ?: "null (not logged in)"}\n\nFirebase works!"
+
+        } catch (e: Exception) {
+            log("Firebase exception: ${e.message}\n${e.stackTraceToString()}")
+            statusText.text = "FIREBASE ERROR:\n\n${e.javaClass.simpleName}\n\n${e.message}"
         }
-        if (password.length < 6) {
-            showError("كلمة المرور يجب أن تكون 6 أحرف على الأقل")
-            return false
+    }
+
+    private fun log(msg: String) {
+        try {
+            val file = java.io.File(getExternalFilesDir(null), "login_debug.txt")
+            file.appendText("${System.currentTimeMillis()}: $msg\n")
+        } catch (e: Exception) {
+            // تجاهل أخطاء السجل
         }
-        return true
-    }
-
-    private fun showLoading(loading: Boolean) {
-        progressBar.visibility = if (loading) View.VISIBLE else View.GONE
-        loginButton.isEnabled = !loading
-        registerButton.isEnabled = !loading
-    }
-
-    private fun showError(message: String) {
-        errorText.text = message
-        errorText.visibility = View.VISIBLE
-    }
-
-    private fun goToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
     }
 }
