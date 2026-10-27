@@ -1,33 +1,15 @@
 {
   "glyphs": "asset://fonts/{fontstack}/{range}.pbf",
   "id": "basic",
-  "layers": [
-    {
-      "id": "background",
-      "type": "background",
-      "paint": {
-        "background-color": "#000000"
-      }
-    },
-    {
-      "id": "satellite",
-      "type": "raster",
-      "source": "satellite",
-      "paint": {
-        "raster-opacity": 1.0
-      }
+  "layers": [{
+    "id": "background",
+    "type": "background",
+    "paint": {
+      "background-color": "#ff00f8"
     }
-  ],
-  "name": "Alameer Satellite",
-  "sources": {
-    "satellite": {
-      "type": "raster",
-      "tiles": [
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      ],
-      "tileSize": 256,
-      "attribution": "Esri, Maxar, Earthstar Geographics"
-    }
-  },
+  }],
+  "name": "Basic",
+  "sources": {},
+
   "version": 1
 }
