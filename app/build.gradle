@@ -82,7 +82,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            resValue 'string', 'APP_NAME', 'NextGIS Mobile'
+            resValue 'string', 'APP_NAME', 'خريطة شبكة الأمير'    // ✏️ تم التعديل
             resValue 'string', 'SENTRY_DSN', sentryDsn
             resValue 'string', 'provider_auth', 'com.nextgis.mobile.provider'
             resValue 'string', 'nextgis_mobile_accounts_auth', 'com.nextgis.mobile.account'
@@ -97,7 +97,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-DEBUG'
-            resValue 'string', 'APP_NAME', 'DEV NextGIS Mobile'
+            resValue 'string', 'APP_NAME', 'خريطة شبكة الأمير DEV'    // ✏️ تم التعديل
             resValue 'string', 'SENTRY_DSN', sentryDsn
             resValue 'string', 'provider_auth', 'com.nextgis.mobile.provider.debug'
             resValue 'string', 'nextgis_mobile_accounts_auth', 'com.nextgis.mobile.account.debug'
