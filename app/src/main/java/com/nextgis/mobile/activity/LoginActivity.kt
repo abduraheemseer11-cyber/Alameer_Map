@@ -41,6 +41,9 @@ class LoginActivity : Activity() {
     private val credentialManager by lazy { CredentialManager.create(this) }
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
+    // ✏️ تم إضافة Web Client ID مباشرة هنا
+    private val webClientId = "168839020587-843eh6m8ctpctf5i0qf7govgu9eg181h.apps.googleusercontent.com"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (auth.currentUser != null) {
@@ -186,10 +189,10 @@ class LoginActivity : Activity() {
         showLoading(true); errorText?.visibility = View.GONE
         coroutineScope.launch {
             try {
-                // ملاحظة: R.string.default_web_client_id يتم إنشاؤه تلقائياً بواسطة إضافة google-services
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(getString(com.nextgis.mobile.R.string.default_web_client_id))
+                    // ✏️ تم استبدال السطر هنا لاستخدام المتغير المباشر
+                    .setServerClientId(webClientId)
                     .build()
 
                 val request = GetCredentialRequest.Builder()
