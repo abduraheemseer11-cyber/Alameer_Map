@@ -39,7 +39,7 @@ buildscript {
     dependencies {
         // تحديث AGP إلى 9.1.1 (أول إصدار يدعم API 37)
         classpath 'com.android.tools.build:gradle:9.1.1'
-        classpath 'com.google.gms:google-services:4.5.0'
+        classpath 'com.google.gms:google-services:4.4.2'    // ✏️ تم التعديل (كان 4.5.0)
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
