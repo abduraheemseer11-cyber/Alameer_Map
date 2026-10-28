@@ -41,12 +41,22 @@ jobs:
         gradle-home-cache-cleanup: true
         validate-wrappers: false
 
-    # ✏️ جديد: استخدام نفس keystore الخاص بك
+    # ✏️ خطوة 1: تثبيت keystore
     - name: Setup Custom Debug Keystore
       run: |
         mkdir -p ~/.android
         echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 -d > ~/.android/debug.keystore
-        echo "Keystore installed successfully"
+        echo "✅ Keystore installed"
+
+    # ✏️ خطوة 2: التحقق من SHA-1 للـ keystore
+    - name: Verify Keystore SHA-1
+      run: |
+        echo "=========================================="
+        echo "🔑 KEYSTORE SHA-1 (what Firebase should have):"
+        echo "=========================================="
+        keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey 2>&1 | grep -i "SHA1:" || echo "❌ FAILED to read keystore!"
+        echo ""
+        echo "📏 Keystore file size:"
         ls -la ~/.android/debug.keystore
 
     - name: Grant execute permission for gradlew
@@ -54,6 +64,17 @@ jobs:
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
+
+    # ✏️ خطوة 3: التحقق من SHA-1 للـ APK النهائي
+    - name: Verify APK SHA-1
+      run: |
+        echo "=========================================="
+        echo "📱 APK SHA-1 (what Google sees on your phone):"
+        echo "=========================================="
+        $ANDROID_SDK_ROOT/build-tools/37.0.0/apksigner verify --print-certs app/build/outputs/apk/debug/app-debug.apk 2>&1 | grep -i "SHA-1" || echo "❌ FAILED to read APK signature!"
+        echo ""
+        echo "📦 APK file:"
+        ls -la app/build/outputs/apk/debug/
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
