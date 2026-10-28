@@ -30,7 +30,6 @@
     <uses-permission
         android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"/>
 
-    <!--         <uses-permission android:name="android.permission.CAMERA"/> -->
     <uses-feature
         android:name="android.hardware.location"
         android:required="true" />
@@ -40,16 +39,7 @@
     <uses-feature
         android:name="android.hardware.wifi"
         android:required="false" />
-    <!--
-        <uses-feature
-            android:name="android.hardware.camera"
-            android:required="false"
-            />
-        <uses-feature
-            android:name="android.hardware.compass"
-            android:required="false"
-            />
-    -->
+
     <supports-screens
         android:anyDensity="true"
         android:largeScreens="true"
@@ -77,19 +67,19 @@
 
         <meta-data
             android:name="io.sentry.dsn"
-            android:value="@string/SENTRY_DSN" /> <!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
+            android:value="@string/SENTRY_DSN" />
         <meta-data
             android:name="io.sentry.traces.user-interaction.enable"
-            android:value="false" /> <!-- enable screenshot for crashes -->
+            android:value="false" />
         <meta-data
             android:name="io.sentry.attach-screenshot"
-            android:value="true" /> <!-- enable view hierarchy for crashes -->
+            android:value="true" />
         <meta-data
             android:name="io.sentry.attach-view-hierarchy"
-            android:value="false" /> <!-- enable the performance API by setting a sample-rate, adjust in production env -->
+            android:value="false" />
         <meta-data
             android:name="io.sentry.traces.sample-rate"
-            android:value="0.0" /> <!-- enable profiling when starting transactions, adjust in production env -->
+            android:value="0.0" />
         <meta-data
             android:name="io.sentry.traces.profiling.sample-rate"
             android:value="0.0" />
@@ -105,11 +95,17 @@
             </intent-filter>
         </activity>
 
-        <!-- ⬇️⬇️ جديد: شاشة تسجيل الدخول ⬇️⬇️ -->
         <activity
             android:name=".activity.LoginActivity"
             android:exported="false"
             android:label="@string/APP_NAME"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- ⬇️⬇️ جديد: شاشة إضافة جهاز ⬇️⬇️ -->
+        <activity
+            android:name=".device.AddDeviceActivity"
+            android:exported="false"
+            android:label="إضافة جهاز"
             android:windowSoftInputMode="adjustResize" />
         <!-- ⬆️⬆️ نهاية الإضافة ⬆️⬆️ -->
 
@@ -120,7 +116,6 @@
             android:name=".activity.SettingsActivity"
             android:label="@string/action_settings"
             android:theme="@style/AppTheme"
-
             />
         <activity
             android:name="com.nextgis.maplibui.activity.NGWSettingsActivity"
@@ -145,7 +140,6 @@
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
-
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
@@ -159,7 +153,6 @@
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
-
             <meta-data
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter" />
